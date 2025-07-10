@@ -648,7 +648,7 @@ do_post_schedule(ProcID, PID, Msg2, Opts) ->
     % Handle scheduling of the message if the message is valid.
     case {Verified, hb_ao:get(<<"type">>, Msg2, Opts)} of
         {false, _} ->
-            io:format("MESSAGE IS NOT VALID: ~p~n~p~n~p~n", [hb_opts:get(verify_assignments, true, Opts),Msg2, Opts]),
+            io:format("MESSAGE IS NOT VALID: ~p~n~p~n", [hb_opts:get(verify_assignments, true, Opts),Msg2]),
             {error,
                 #{
                     <<"status">> => 400,
