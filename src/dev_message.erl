@@ -273,9 +273,19 @@ commit(Self, Req, Opts) ->
 %% `committers' key in the request can be used to specify that only the 
 %% commitments from specific committers should be verified. Similarly, specific
 %% commitments can be specified using the `commitments' key.
+%% @doc Verify a message. By default, all commitments are verified. The
+%% `committers' key in the request can be used to specify that only the 
+%% commitments from specific committers should be verified. Similarly, specific
+%% commitments can be specified using the `commitments' key.
 verify(Self, Req, Opts) ->
     % Get the target message of the verification request.
     {ok, RawBase} = hb_message:find_target(Self, Req, Opts),
+    io:format("RawBase: ~p~n", [RawBase]),
+    Commitments = ensure_commitments_loaded(
+        RawBase,
+        Opts
+    ),
+    io:format("Commitments: ~p~n", [Commitments]),
     Base =
         hb_message:convert(
             ensure_commitments_loaded(
@@ -285,19 +295,24 @@ verify(Self, Req, Opts) ->
             tabm,
             Opts
         ),
+    io:format("Base: ~p~n", [Base]),
     ?event(verify, {verify, {base_found, Base}}),
     Commitments = maps:get(<<"commitments">>, Base, #{}),
+    io:format("Commitments: ~p~n", [Commitments]),
     IDsToVerify = commitment_ids_from_request(Base, Req, Opts),
+    io:format("IDsToVerify: ~p~n", [IDsToVerify]),
     % Verify the commitments. Stop execution if any fail.
     Res =
         lists:all(
             fun(CommitmentID) ->
+                io:format("CommitmentID: ~p~n", [CommitmentID]),
                 {ok, Res} =
                     verify_commitment(
                         Base,
                         maps:get(CommitmentID, Commitments),
                         Opts
                     ),
+                io:format("Res: ~p~n", [Res]),
                 ?event(verify,
                     {verify_commitment_res,
                         {commitment_id, CommitmentID},
@@ -307,6 +322,7 @@ verify(Self, Req, Opts) ->
             end,
             IDsToVerify
         ),
+    io:format("Res: ~p~n", [Res]),
     ?event(verify, {verify, {res, Res}}),
     {ok, Res}.
 
