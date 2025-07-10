@@ -277,15 +277,19 @@ commit(Self, Req, Opts) ->
 %% `committers' key in the request can be used to specify that only the 
 %% commitments from specific committers should be verified. Similarly, specific
 %% commitments can be specified using the `commitments' key.
+%% @doc Verify a message. By default, all commitments are verified. The
+%% `committers' key in the request can be used to specify that only the 
+%% commitments from specific committers should be verified. Similarly, specific
+%% commitments can be specified using the `commitments' key.
 verify(Self, Req, Opts) ->
     % Get the target message of the verification request.
     {ok, RawBase} = hb_message:find_target(Self, Req, Opts),
     io:format("RawBase: ~p~n", [RawBase]),
-    Commitments = ensure_commitments_loaded(
+    LoadedCommitments = ensure_commitments_loaded(
         RawBase,
         Opts
     ),
-    io:format("Commitments: ~p~n", [Commitments]),
+    io:format("LoadedCommitments: ~p~n", [LoadedCommitments]),
     Base =
         hb_message:convert(
             ensure_commitments_loaded(
