@@ -67,6 +67,15 @@ verify(Base, Req, RawOpts) ->
     ?event({signature_base_verify, {string, SigBase}}),
     KeyID = maps:get(<<"keyid">>, Req),
     RawSignature = hb_util:decode(Signature = maps:get(<<"signature">>, Req)),
+    case hb_maps:get(<<"path">>, Base, not_found) of
+        <<"charge">> ->
+            io:format("Base: ~p~n", [Base]),
+            io:format("Req: ~p~n", [Req]),
+            io:format("SigBase: ~p~n", [SigBase]),
+            io:format("RawSignature: ~p~n", [RawSignature]);
+        _ ->
+            ok
+    end,
     case maps:get(<<"type">>, Req) of
         <<"rsa-pss-sha512">> ->
             ?event(httpsig_verify, {verify, {rsa_pss_sha512, {sig_base, SigBase}}}),
