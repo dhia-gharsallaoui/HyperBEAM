@@ -214,38 +214,45 @@ response(State, RawResponse, NodeMsg) ->
                     % so we proceed to charge the user's account. We sign the
                     % request with the node's private key, as it is the node
                     % that is performing the charge, not the user.
+                    CommitData = #{
+                        <<"path">> => <<"charge">>,
+                        <<"quantity">> => Price,
+                        <<"account">> =>
+                            case hb_message:signers(Request, NodeMsg) of
+                                [Signer] -> Signer;
+                                Multiple -> Multiple
+                            end,
+                        <<"recipient">> =>
+                            case hb_opts:get(p4_recipient, undefined, NodeMsg) of
+                                Addr when ?IS_ID(Addr) ->
+                                    hb_util:human_id(Addr);
+                                _ ->
+                                    case hb_opts:get(operator, undefined, NodeMsg) of
+                                        undefined ->
+                                            <<"unknown">>;
+                                        Operator->
+                                            hb_util:human_id(Operator)
+                                    end
+                            end,
+                        <<"request">> => Request
+                    },
+                    io:format("CommitData: ~p~n", [CommitData]),
                     LedgerReq =
                         hb_message:commit(
-                            #{
-                                <<"path">> => <<"charge">>,
-                                <<"quantity">> => Price,
-                                <<"account">> =>
-                                    case hb_message:signers(Request, NodeMsg) of
-                                        [Signer] -> Signer;
-                                        Multiple -> Multiple
-                                    end,
-                                <<"recipient">> =>
-                                    case hb_opts:get(p4_recipient, undefined, NodeMsg) of
-                                        Addr when ?IS_ID(Addr) ->
-                                            hb_util:human_id(Addr);
-                                        _ ->
-                                            case hb_opts:get(operator, undefined, NodeMsg) of
-                                                undefined ->
-                                                    <<"unknown">>;
-                                                Operator->
-                                                    hb_util:human_id(Operator)
-                                            end
-                                    end,
-                                <<"request">> => Request
-                            },
+                            CommitData,
                             hb_opts:get(priv_wallet, no_viable_wallet, NodeMsg)
                         ),
+                    io:format("LedgerReq: ~p~n", [LedgerReq]),
+                    io:format("LedgerReqLoaded: ~p~n", [hb_cache:ensure_all_loaded(LedgerReq, NodeMsg)]),
+                    Verified = hb_message:verify(LedgerReq, signers, NodeMsg),
+                    io:format("Verified: ~p~n", [Verified]),
                     ?event(payment,
                         {post_charge,
                             {msg, LedgerMsg},
                             {req, LedgerReq}
                         }
                     ),
+                    io:format("LedgerMsg: ~p~n", [LedgerMsg]),
                     case hb_ao:resolve(LedgerMsg, LedgerReq, NodeMsg) of
                         {ok, _} ->
                             ?event(payment, {p4_post_ledger_response, {ok, Price}}),
