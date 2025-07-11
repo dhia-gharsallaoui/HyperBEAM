@@ -568,9 +568,9 @@ update_node_config(StorePath, NewStore, Opts) ->
             }
         ),
     % start_lmdb_store(NewStore, Opts),
-    spawn(fun() ->
-          restart_http_server(Opts)
-      end),
+    % spawn(fun() ->
+    %       restart_http_server(Opts)
+    %   end),
 
     ?event(debug_volume, 
         {update_node_config, config_updated, success}
