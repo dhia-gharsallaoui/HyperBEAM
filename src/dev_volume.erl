@@ -26,7 +26,7 @@
 %%%   format arbitrary disks as all operations are safeguarded by host 
 %%%   operating system permissions enforced upon the HyperBEAM environment.
 -module(dev_volume).
--export([info/1, info/3, mount/3, public_key/3]).
+-export([info/1, info/3, mount/3, public_key/3, restart_http_server/1]).
 -include("include/hb.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("public_key/include/public_key.hrl").
@@ -567,11 +567,25 @@ update_node_config(StorePath, NewStore, Opts) ->
                 genesis_wasm_db_dir => FullGenesisPath
             }
         ),
-    start_lmdb_store(NewStore, Opts),
+    % start_lmdb_store(NewStore, Opts),
+    restart_http_server(Opts),
     ?event(debug_volume, 
         {update_node_config, config_updated, success}
     ),
     {ok, <<"Volume mounted and store updated successfully">>}.
+
+restart_http_server(Opts) ->
+    ?event(debug_volume, 
+        {stop_http_server_begin, Opts}
+    ),
+    hb_http_server:stop_node(Opts),
+    ?event(debug_volume, 
+        {stop_http_server_success, success}
+    ),
+    hb_http_server:start(Opts),
+    ?event(debug_volume, 
+        {start_http_server_success, Opts}
+    ).
 
 %% @doc Stop the LMDB store safely with error handling.
 %% @param Opts The options containing the current store configuration.

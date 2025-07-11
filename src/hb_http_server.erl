@@ -13,7 +13,7 @@
 -export([start/0, start/1, allowed_methods/2, init/2]).
 -export([set_opts/1, set_opts/2, get_opts/0, get_opts/1]).
 -export([set_default_opts/1, set_proc_server_id/1]).
--export([start_node/0, start_node/1]).
+-export([start_node/0, start_node/1, stop_node/1]).
 -include_lib("eunit/include/eunit.hrl").
 -include("include/hb.hrl").
 
@@ -111,6 +111,15 @@ start(Opts) ->
     BaseOpts = set_default_opts(Opts),
     {ok, Listener, _Port} = new_server(BaseOpts),
     {ok, Listener}.
+
+stop_node(Opts) ->
+	?event(http, {node_stopping, Opts}),
+	application:stop(ranch),
+	application:stop(cowboy),
+	% application:stop(gun),
+	% application:stop(inets),
+	?event(http, {node_stopped, Opts}),
+	<<"node stopped">>.
 
 %% @doc Trigger the creation of a new HTTP server node. Accepts a `NodeMsg'
 %% message, which is used to configure the server. This function executed the

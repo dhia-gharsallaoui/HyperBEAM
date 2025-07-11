@@ -635,7 +635,9 @@ safe_close_by_name(DataDir) ->
     try
         elmdb:env_close_by_name(binary_to_list(DataDir))
     catch
-        error:_ -> ok
+        error:_ -> 
+            ?event(debug, {lmdb_stop_not_found_in_persistent_term_safe_close, DataDir}),
+            ok
     end.
 
 %% @doc Completely delete the database directory and all its contents.
