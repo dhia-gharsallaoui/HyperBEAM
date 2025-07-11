@@ -46,16 +46,13 @@ charge_linkification_verification_test() ->
     ?event({test, original_verification, OriginalVerification}),
 
     %% Step 4: Set up LMDB store (simulating TEE + non-volatile)
-    TestDir = "/tmp/test_lmdb_" ++ integer_to_list(erlang:system_time()),
-    StoreOpts = #{
-        store => #{
-            <<"name">> => list_to_binary(TestDir),
-            <<"store-module">> => hb_store_lmdb,
-            <<"capacity">> => 16 * 1024 * 1024  % 16MB for test
-        }
-    },
+    % TestDir = "/tmp/test_lmdb_" ++ integer_to_list(erlang:system_time()),
 
-    ?event({test, initializing_lmdb_store, TestDir}),
+    StoreOpts = hb_http_server:get_opts(#{
+        http_server => hb_util:human_id(ar_wallet:to_address(hb:wallet()))
+    }),
+
+    % ?event({test, initializing_lmdb_store, TestDir}),
 
     %% Step 5: Write message to LMDB (this should linkify embedded request)
     {ok, _Path} = hb_cache:write(SignedCharge, StoreOpts),
@@ -121,11 +118,11 @@ charge_linkification_verification_test() ->
     ?event({test, verification_with_offload, VerificationOffload}),
 
     %% Step 10: Clean up
-    try
-        os:cmd("rm -rf " ++ TestDir)
-    catch
-        _:_ -> ok
-    end,
+    % try
+    %     os:cmd("rm -rf " ++ TestDir)
+    % catch
+    %     _:_ -> ok
+    % end,
 
     %% Assertions to check our hypothesis
     ?assertEqual(true, OriginalVerification),
