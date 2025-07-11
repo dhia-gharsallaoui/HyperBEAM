@@ -93,7 +93,7 @@ charge_linkification_verification_test() ->
     ?event({test, has_linked_request, HasLinkedRequest}),
 
     %% Step 8: THE CRITICAL TEST - verify retrieved message
-    RetrievedVerification = hb_message:verify(RetrievedCharge),
+    RetrievedVerification = hb_message:verify(RetrievedCharge, all, StoreOpts),
     ?event({test, retrieved_verification, RetrievedVerification}),
 
     %% Step 9: Test different verification contexts
