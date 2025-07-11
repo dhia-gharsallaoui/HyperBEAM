@@ -37,7 +37,22 @@ once(_Msg1, Msg2, Opts) ->
                 ),
 			Name = {<<"cron@1.0">>, ReqMsgID},
 			Pid = spawn(fun() -> once_worker(CronPath, ModifiedMsg2, Opts) end),
+            ?event(
+                {cron_once_pid,
+                    {cron_pid, Pid}
+                }
+            ),
 			hb_name:register(Name, Pid),
+            ?event(
+                {cron_once_pid_registered,
+                    {cron_pid, Pid}
+                }
+            ),
+            ?event(
+                {cron_once_pid_registered,
+                    {req_msg_id, ReqMsgID}
+                }
+            ),
 			{ok, ReqMsgID}
 	end.
 
