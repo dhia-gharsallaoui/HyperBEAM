@@ -62,20 +62,17 @@ verify(Base, Req, RawOpts) ->
     % A rsa-pss-sha512 commitment is verified by regenerating the signature
     % base and validating against the signature.
     Opts = opts(RawOpts),
-    {ok, EncMsg, EncComm, _} = normalize_for_encoding(Base, Req, Opts),
+    
+    % FIX: Resolve all +link keys before signature verification
+    % This ensures that verification works with the same content structure
+    % that was used during signing, regardless of storage linkification
+    ResolvedBase = resolve_verification_links(Base, Opts),
+    
+    {ok, EncMsg, EncComm, _} = normalize_for_encoding(ResolvedBase, Req, Opts),
     SigBase = signature_base(EncMsg, EncComm, Opts),
     ?event({signature_base_verify, {string, SigBase}}),
     KeyID = maps:get(<<"keyid">>, Req),
     RawSignature = hb_util:decode(Signature = maps:get(<<"signature">>, Req)),
-    case hb_maps:get(<<"path">>, Base, not_found) of
-        <<"charge">> ->
-            io:format("Base: ~p~n", [Base]),
-            io:format("Req: ~p~n", [Req]),
-            io:format("SigBase: ~p~n", [SigBase]),
-            io:format("RawSignature: ~p~n", [RawSignature]);
-        _ ->
-            ok
-    end,
     case maps:get(<<"type">>, Req) of
         <<"rsa-pss-sha512">> ->
             ?event(httpsig_verify, {verify, {rsa_pss_sha512, {sig_base, SigBase}}}),
@@ -559,6 +556,83 @@ multicommitted_id_test() ->
     ?assert(hb_message:verify(Signed2, [Addr1, Addr2])),
     ?assert(hb_message:verify(Signed2, [Addr2, Addr1])),
     ?assert(hb_message:verify(Signed2, all)).
+
+%% @doc Resolve +link keys to their actual content for signature verification.
+%% This fixes the issue where messages stored with linkification fail verification
+%% because the verification process can't resolve the linked content.
+resolve_verification_links(Base, Opts) ->
+    ?event({httpsig_fix, resolving_verification_links, maps:keys(Base)}),
+    
+    try
+        % Use hb_link:normalize with false mode to resolve all links to actual content
+        % This converts +link references back to their actual values without re-linkifying
+        ResolveOpts = Opts#{linkify_mode => false},
+        ResolvedMsg = hb_link:normalize(Base, false, ResolveOpts),
+        ?event({httpsig_fix, links_resolved_successfully, maps:keys(ResolvedMsg)}),
+        ResolvedMsg
+    catch
+        ErrorClass:ErrorReason:Stack ->
+            ?event({httpsig_fix, link_resolution_failed, {ErrorClass, ErrorReason, Stack}}),
+            
+            % Fallback: manually resolve +link keys if hb_link:normalize fails
+            ResolvedPairs = maps:fold(
+                fun(Key, Value, Acc) ->
+                    case is_link_key(Key) of
+                        true ->
+                            % This is a +link key, try to resolve it
+                            BaseKey = remove_link_suffix(Key),
+                            ?event({httpsig_fix, manual_resolving_link, {Key, BaseKey, Value}}),
+                            
+                            try
+                                % Try to load the linked content directly
+                                ResolvedValue = hb_cache:ensure_loaded(Value, Opts),
+                                ?event({httpsig_fix, manual_link_resolved, {BaseKey, ResolvedValue}}),
+                                [{BaseKey, ResolvedValue} | Acc]
+                            catch
+                                ErrorClass2:ErrorReason2:_Stack2 ->
+                                    ?event({httpsig_fix, manual_link_failed, {Key, Value, ErrorClass2, ErrorReason2}}),
+                                    % If we can't resolve, keep the original structure
+                                    [{Key, Value} | Acc]
+                            end;
+                        false ->
+                            % Regular key, keep as-is
+                            [{Key, Value} | Acc]
+                    end
+                end,
+                [],
+                maps:without([<<"commitments">>], Base)  % Don't process commitments
+            ),
+            
+            % Rebuild the message with resolved links
+            ManualResolvedMsg = maps:from_list(ResolvedPairs),
+            
+            % Add back commitments if they existed
+            case maps:get(<<"commitments">>, Base, undefined) of
+                undefined -> ManualResolvedMsg;
+                Commitments -> ManualResolvedMsg#{<<"commitments">> => Commitments}
+            end
+    end.
+
+%% @doc Check if a key is a +link key
+is_link_key(Key) when is_binary(Key) ->
+    case byte_size(Key) >= 5 of
+        true ->
+            Suffix = binary:part(Key, byte_size(Key) - 5, 5),
+            Suffix =:= <<"+link">>;
+        false ->
+            false
+    end;
+is_link_key(_) ->
+    false.
+
+%% @doc Remove +link suffix from a key
+remove_link_suffix(Key) when is_binary(Key) ->
+    case is_link_key(Key) of
+        true ->
+            binary:part(Key, 0, byte_size(Key) - 5);
+        false ->
+            Key
+    end.
 
 %% @doc Test that we can sign and verify a message with a link. We use 
 sign_and_verify_link_test() ->
