@@ -63,6 +63,7 @@ start(Opts = #{ <<"name">> := DataDir }) ->
     {ok, DBInstance} = elmdb:db_open(Env, [create]),
     % Store the environment handle in persistent_term for later cleanup
     StoreKey = {lmdb, ?MODULE, DataDir},
+    ?event(debug_store_lmdb, {start, {env, Env}, {db, DBInstance}, {store_key, StoreKey}}),
     persistent_term:put(StoreKey, {Env, DataDir}),
     {ok, #{ <<"env">> => Env, <<"db">> => DBInstance }};
 start(_) ->
@@ -123,6 +124,7 @@ write(Opts, PathParts, Value) when is_list(PathParts) ->
     write(Opts, PathBin, Value);
 write(Opts, Path, Value) ->
     #{ <<"db">> := DBInstance } = find_env(Opts),
+    ?event(debug_store_lmdb, {write, {db, DBInstance}, {path, Path}, {value, Value}}),
     case elmdb:async_put(DBInstance, Path, Value) of
         ok -> ok;
         {error, Type, Description} ->
@@ -165,8 +167,10 @@ read(Opts, Path) ->
     % Try direct read first (fast path for non-link paths)
     case read_with_links(Opts, Path) of
         {ok, Value} -> 
+            ?event(debug_store_lmdb, {read_success, {path, Path}, {value, Value}}),
             {ok, Value};
         not_found ->
+            ?event(debug_store_lmdb, {read_not_found, {path, Path}}),
             try
                 PathParts = binary:split(Path, <<"/">>, [global]),
                 case resolve_path_links(Opts, PathParts) of
