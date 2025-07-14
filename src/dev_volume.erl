@@ -580,7 +580,21 @@ update_node_config(StorePath, NewStore, Opts) ->
         {new_opts, {explicit, NewOpts}}
     ),
     NewOpts2 = Opts#{
-        % store => NewStore, 
+        store => [#{<<"name">> => <<"cache-mainnet/lmdb">>,
+            <<"store-module">> => hb_store_lmdb},
+            #{<<"name">> => <<"cache-mainnet">>,
+            <<"store-module">> => hb_store_fs},
+            #{<<"store">> =>
+                [#{<<"name">> => <<"cache-mainnet/lmdb">>,
+                    <<"store-module">> => hb_store_lmdb}],
+            <<"store-module">> => hb_store_gateway,
+            <<"subindex">> =>
+                [#{<<"name">> => <<"Data-Protocol">>,
+                    <<"value">> => <<"ao">>}]},
+            #{<<"store">> =>
+                [#{<<"name">> => <<"cache-mainnet/lmdb">>,
+                    <<"store-module">> => hb_store_lmdb}],
+            <<"store-module">> => hb_store_gateway}], 
         genesis_wasm_db_dir => FullGenesisPath
     },
     ok = hb_http_server:set_opts(NewOpts2),
