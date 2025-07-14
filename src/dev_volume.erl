@@ -566,18 +566,24 @@ update_node_config(StorePath, NewStore, Opts) ->
     ),
     stop_lmdb_store(Opts),
     ?event(debug_volume_store_mod, 
-        {old_opts, Opts}
+        {old_opts, {explicit, Opts}}
     ),
     ?event(debug_volume_store_mod, 
-        {new_store, NewStore}
+        {new_store, {explicit, NewStore}}
     ),
-    ok = 
-        hb_http_server:set_opts(
-            Opts#{
-                % store => NewStore
-                genesis_wasm_db_dir => FullGenesisPath
-            }
-        ),
+
+    NewOpts = Opts#{
+        store => NewStore, 
+        genesis_wasm_db_dir => FullGenesisPath
+    },
+    ?event(debug_volume_store_mod, 
+        {new_opts, {explicit, NewOpts}}
+    ),
+    NewOpts2 = Opts#{
+        % store => NewStore, 
+        genesis_wasm_db_dir => FullGenesisPath
+    },
+    ok = hb_http_server:set_opts(NewOpts2),
     start_lmdb_store(NewStore, Opts),
 
     ?event(debug_volume, 
