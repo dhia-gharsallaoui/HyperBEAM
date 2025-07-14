@@ -110,18 +110,24 @@ do_find(StoreOpts = #{ <<"store-module">> := Mod }) ->
     Name = maps:get(<<"name">>, StoreOpts, Mod),
     io:format("Do Find Name, hb_store: ~p~n", [Name]),
     LookupName = {store, Mod, Name},
-    io:format("Do Find Lookup Name, hb_store: ~p~n", [Name]),
-    case get(LookupName) of
+    io:format("Do Find Lookup Name, hb_store: ~p~n", [LookupName]),
+    GetResult = get(LookupName),
+    io:format("Do Find Get Result, hb_store: ~p~n", [GetResult]),
+    case GetResult of
         undefined ->
             try persistent_term:get(LookupName) of
                 Instance1 ->
+                    io:format("Do Find Instance1, hb_store: ~p~n", [Instance1]),
                     EnsuredInstance = ensure_instance_alive(StoreOpts, Instance1),
                     put(LookupName, EnsuredInstance),
                     EnsuredInstance
             catch
-                error:badarg -> spawn_instance(StoreOpts)
+                error:badarg -> 
+                    io:format("Do Find error:badarg, hb_store: ~n"),
+                    spawn_instance(StoreOpts)
             end;
         InstanceMessage ->
+            io:format("Ensure Instance Alive, hb_store: ~p~n", [InstanceMessage]),
             ensure_instance_alive(StoreOpts, InstanceMessage)
     end.
 
