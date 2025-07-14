@@ -395,7 +395,7 @@ finalize_become(KeyResp, NodeLocation, NodeID, GreenZoneAES, Opts) ->
         hb_http_server:set_opts(
             NewOpts
         ),
-    try_mount_encrypted_volume(GreenZoneWallet, NewOpts),
+    % try_mount_encrypted_volume(GreenZoneWallet, NewOpts),
     ?event(green_zone, {become, update_wallet, complete}),
     {ok, #{
         <<"body">> => #{
