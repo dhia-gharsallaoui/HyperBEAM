@@ -492,7 +492,8 @@ mount_formatted_partition(
             stop_lmdb_store(Opts),
             os:cmd("cp -r cache-mainnet /root/mnt/hyperbeam_secure/store/"),
             os:cmd("rm -rf cache-mainnet"),
-            os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet .");
+            os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet ."),
+            {ok, <<"Volume mounted, symlink created, and store updated successfully">>};
             % update_store_path(StorePath, Opts);
         {error, RetryMountError} ->
             ?event(debug_volume, 
