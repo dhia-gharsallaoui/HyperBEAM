@@ -494,8 +494,8 @@ mount_formatted_partition(
             % os:cmd("rm -rf cache-mainnet"),
             % os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet ."),
             % {ok, <<"Volume mounted, symlink created, and store updated successfully">>};
-            % update_store_path(StorePath, Opts);
-            {ok, <<"Store pass through no update">>};
+            update_store_path(StorePath, Opts);
+            % {ok, <<"Store pass through no update">>};
         {error, RetryMountError} ->
             ?event(debug_volume, 
                 {mount_formatted_partition, mount_error, 
@@ -527,7 +527,8 @@ update_store_path(StorePath, Opts) ->
                     {result, StoreResult}
                 }
             ),
-            update_node_config(StorePath, NewStore, Opts);
+            % update_node_config(StorePath, NewStore, Opts);
+            {ok, <<"Store migrated no update">>};
         {error, StoreError} ->
             ?event(debug_volume, 
                 {update_store_path, store_change_error, 
