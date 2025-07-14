@@ -571,13 +571,13 @@ update_node_config(StorePath, NewStore, Opts) ->
     ?event(debug_volume_store_mod, 
         {new_store, NewStore}
     ),
-    % ok = 
-    %     hb_http_server:set_opts(
-    %         Opts#{
-    %             store => NewStore, 
-    %             genesis_wasm_db_dir => FullGenesisPath
-    %         }
-    %     ),
+    ok = 
+        hb_http_server:set_opts(
+            Opts#{
+                store => NewStore
+                % genesis_wasm_db_dir => FullGenesisPath
+            }
+        ),
     start_lmdb_store(NewStore, Opts),
 
     ?event(debug_volume, 

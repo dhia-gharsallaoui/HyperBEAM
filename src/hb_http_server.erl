@@ -439,6 +439,7 @@ set_opts(Opts) ->
         no_server_ref ->
             ok;
         ServerRef ->
+            io:format("HTTP SERVER: ServerRef Found ~n"),
             ok = cowboy:set_env(ServerRef, node_msg, Opts)
     end.
 set_opts(Request, Opts) ->
