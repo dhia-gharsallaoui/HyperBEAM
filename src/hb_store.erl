@@ -134,15 +134,23 @@ do_find(StoreOpts = #{ <<"store-module">> := Mod }) ->
 %% @doc Create a new instance of a store and return its term.
 spawn_instance(StoreOpts = #{ <<"store-module">> := Mod }) ->
     Name = maps:get(<<"name">>, StoreOpts, Mod),
+    io:format("Spawn Instance, hb_store: ~p~n", [StoreOpts]),
+    io:format("Spawn Instance, name: ~p~n", [Name]),
+    io:format("Spawn Instance, mod: ~p~n", [Mod]),
     try Mod:start(StoreOpts) of
-        ok -> ok;
+        ok -> 
+            io:format("Spawn Instance, ok: ~p~n", [ok]),
+            ok;
         {ok, InstanceMessage} ->
+            io:format("Spawn Instance, {ok, InstanceMessage}: ~p~n", [InstanceMessage]),
             set(Mod, Name, InstanceMessage),
             InstanceMessage;
         {error, Reason} ->
+            io:format("Spawn Instance, {error, Reason}: ~p~n", [Reason]),
             ?event(error, {store_start_failed, {Mod, Name, Reason}}),
             throw({store_start_failed, {Mod, Name, Reason}})
     catch error:undef ->
+        io:format("Spawn instance, error:undef: ~p~n", [error]),
         ok
     end.
 
@@ -150,10 +158,15 @@ spawn_instance(StoreOpts = #{ <<"store-module">> := Mod }) ->
 %% is alive. If it does not, we return it as is.
 ensure_instance_alive(StoreOpts, InstanceMessage = #{ <<"pid">> := Pid }) ->
     case is_process_alive(Pid) of
-        true -> InstanceMessage;
-        false -> spawn_instance(StoreOpts)
+        true -> 
+            io:format("Process alive, hb_store: ~p~n", [InstanceMessage]),
+            InstanceMessage;
+        false -> 
+            io:format("Process not alive, hb_store: ~p~n", [InstanceMessage]),
+            spawn_instance(StoreOpts)
     end;
 ensure_instance_alive(_, InstanceMessage) ->
+    io:format("Ensure Instance Alive, hb_store: ~p~n", [InstanceMessage]),
     InstanceMessage.
 
 %%% Library wrapper implementations.
