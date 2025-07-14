@@ -62,7 +62,7 @@ start(Opts = #{ <<"name">> := DataDir }) ->
         ),
     {ok, DBInstance} = elmdb:db_open(Env, [create]),
     % Store the environment handle in persistent_term for later cleanup
-    StoreKey = {lmdb, ?MODULE, DataDir},
+    StoreKey = {store, ?MODULE, DataDir},
     ?event(debug_store_lmdb, {start, {env, Env}, {db, DBInstance}, {store_key, StoreKey}}),
     persistent_term:put(StoreKey, {Env, DataDir}),
     {ok, #{ <<"env">> => Env, <<"db">> => DBInstance }};
@@ -588,7 +588,7 @@ find_env(Opts) -> hb_store:find(Opts).
 
 %% Shutdown LMDB environment and cleanup resources
 stop(#{ <<"store-module">> := ?MODULE, <<"name">> := DataDir }) ->
-    StoreKey = {lmdb, ?MODULE, DataDir},
+    StoreKey = {store, ?MODULE, DataDir},
     close_environment(StoreKey, DataDir),
     % Wait 3 seconds to ensure the environment is closed
     timer:sleep(5000),

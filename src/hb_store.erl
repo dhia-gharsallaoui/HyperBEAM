@@ -108,7 +108,9 @@ find(StoreOpts) ->
 
 do_find(StoreOpts = #{ <<"store-module">> := Mod }) ->
     Name = maps:get(<<"name">>, StoreOpts, Mod),
+    io:format("Do Find Name, hb_store: ~p~n", [Name]),
     LookupName = {store, Mod, Name},
+    io:format("Do Find Lookup Name, hb_store: ~p~n", [Name]),
     case get(LookupName) of
         undefined ->
             try persistent_term:get(LookupName) of
