@@ -578,7 +578,7 @@ update_node_config(StorePath, NewStore, Opts) ->
                 genesis_wasm_db_dir => FullGenesisPath
             }
         ),
-    start_lmdb_store(#{ store => NewStore }, Opts),
+    start_lmdb_store(NewStore, Opts),
 
     ?event(debug_volume, 
         {update_node_config, config_updated, success}
