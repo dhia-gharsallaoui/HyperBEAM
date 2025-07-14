@@ -574,8 +574,8 @@ update_node_config(StorePath, NewStore, Opts) ->
     ok = 
         hb_http_server:set_opts(
             Opts#{
-                store => NewStore
-                % genesis_wasm_db_dir => FullGenesisPath
+                % store => NewStore
+                genesis_wasm_db_dir => FullGenesisPath
             }
         ),
     start_lmdb_store(NewStore, Opts),
