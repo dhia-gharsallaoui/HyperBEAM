@@ -489,12 +489,13 @@ mount_formatted_partition(
                     {result, RetryMountResult}
                 }
             ),
-            stop_lmdb_store(Opts),
-            os:cmd("cp -r cache-mainnet /root/mnt/hyperbeam_secure/store/"),
-            os:cmd("rm -rf cache-mainnet"),
-            os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet ."),
-            {ok, <<"Volume mounted, symlink created, and store updated successfully">>};
+            % stop_lmdb_store(Opts),
+            % os:cmd("cp -r cache-mainnet /root/mnt/hyperbeam_secure/store/"),
+            % os:cmd("rm -rf cache-mainnet"),
+            % os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet ."),
+            % {ok, <<"Volume mounted, symlink created, and store updated successfully">>};
             % update_store_path(StorePath, Opts);
+            {ok, <<"Store pass through no update">>};
         {error, RetryMountError} ->
             ?event(debug_volume, 
                 {mount_formatted_partition, mount_error, 
@@ -571,10 +572,7 @@ update_node_config(StorePath, NewStore, Opts) ->
                 genesis_wasm_db_dir => FullGenesisPath
             }
         ),
-    % start_lmdb_store(NewStore, Opts),
-    % spawn(fun() ->
-    %       restart_http_server(Opts)
-    %   end),
+    start_lmdb_store(NewStore, Opts),
 
     ?event(debug_volume, 
         {update_node_config, config_updated, success}
