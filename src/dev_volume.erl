@@ -489,7 +489,6 @@ mount_formatted_partition(
                     {result, RetryMountResult}
                 }
             ),
-            % stop_lmdb_store(Opts),
             % os:cmd("cp -r cache-mainnet /root/mnt/hyperbeam_secure/store/"),
             % os:cmd("rm -rf cache-mainnet"),
             % os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet ."),
@@ -527,8 +526,7 @@ update_store_path(StorePath, Opts) ->
                     {result, StoreResult}
                 }
             ),
-            % update_node_config(StorePath, NewStore, Opts);
-            {ok, <<"Store migrated no update">>};
+            update_node_config(StorePath, NewStore, Opts);
         {error, StoreError} ->
             ?event(debug_volume, 
                 {update_store_path, store_change_error, 
@@ -566,14 +564,15 @@ update_node_config(StorePath, NewStore, Opts) ->
     ?event(debug_volume, 
         {update_node_config, full_path_created, FullGenesisPath}
     ),
-    ok = 
-        hb_http_server:set_opts(
-            Opts#{
-                store => NewStore, 
-                genesis_wasm_db_dir => FullGenesisPath
-            }
-        ),
-    start_lmdb_store(NewStore, Opts),
+    stop_lmdb_store(Opts),
+    % ok = 
+    %     hb_http_server:set_opts(
+    %         Opts#{
+    %             store => NewStore, 
+    %             genesis_wasm_db_dir => FullGenesisPath
+    %         }
+    %     ),
+    start_lmdb_store(Opts, Opts),
 
     ?event(debug_volume, 
         {update_node_config, config_updated, success}
