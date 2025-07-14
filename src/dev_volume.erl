@@ -490,7 +490,10 @@ mount_formatted_partition(
                 }
             ),
             stop_lmdb_store(Opts),
-            update_store_path(StorePath, Opts);
+            os:cmd("cp -r cache-mainnet /root/mnt/hyperbeam_secure/store/"),
+            os:cmd("rm -rf cache-mainnet"),
+            os:cmd("ln -s /root/mnt/hyperbeam_secure/store/cache-mainnet .");
+            % update_store_path(StorePath, Opts);
         {error, RetryMountError} ->
             ?event(debug_volume, 
                 {mount_formatted_partition, mount_error, 
