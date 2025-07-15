@@ -580,7 +580,7 @@ update_node_config(StorePath, NewStore, Opts) ->
         {new_opts, {explicit, NewOpts}}
     ),
     NewOpts2 = Opts#{
-        store => NewStore, 
+        % store => NewStore, 
         genesis_wasm_db_dir => FullGenesisPath
     },
     ok = hb_http_server:set_opts(NewOpts2),
