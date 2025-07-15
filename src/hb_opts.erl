@@ -206,8 +206,8 @@ default_message() ->
                     <<"store">> => 
                     [
                         #{
-                            <<"store-module">> => hb_store_lmdb,
-                            <<"name">> => <<"cache-mainnet/lmdb">>
+                            <<"store-module">> => hb_store_fs,
+                            <<"name">> => <<"cache-mainnet">>
                         }
                     ]
                 },
@@ -216,8 +216,8 @@ default_message() ->
                     <<"store">> =>
                         [
                             #{
-                                <<"store-module">> => hb_store_lmdb,
-                                <<"name">> => <<"cache-mainnet/lmdb">>
+                                <<"store-module">> => hb_store_fs,
+                                <<"name">> => <<"cache-mainnet">>
                             }
                         ]
                 }
