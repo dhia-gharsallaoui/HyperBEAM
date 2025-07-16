@@ -24,6 +24,7 @@ end
 
 -- Charge the user's balance in the current ledger state.
 function charge(base, request)
+    request.request = nil
     ao.event("debug_charge", {
         "client starting charge",
         { request = request, base = base }
