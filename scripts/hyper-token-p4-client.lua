@@ -26,7 +26,7 @@ end
 function charge(base, request)
     ao.event("debug_charge", {
         "client starting charge",
-        { request = request, base = base }
+        { base = base }
     })
     local status, res = ao.resolve({
         path = "(" .. base["ledger-path"] .. ")/push",
