@@ -24,10 +24,13 @@ end
 
 -- Charge the user's balance in the current ledger state.
 function charge(base, request)
+    request.request = nil
+    
     ao.event("debug_charge", {
         "client starting charge",
-        { base = base }
+        { request = request, base = base }
     })
+    
     local status, res = ao.resolve({
         path = "(" .. base["ledger-path"] .. ")/push",
         method = "POST",
