@@ -13,8 +13,6 @@ info() ->
         routes => #{
             % Default message viewer page:
             <<"index">> => <<"index.html">>,
-            % HyperBEAM default homepage:
-            <<"dashboard">> => <<"dashboard.html">>,
             % Interactive REPL:
             <<"console">> => <<"console.html">>,
             <<"graph">> => <<"graph.html">>,
